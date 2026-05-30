@@ -12,9 +12,8 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class LearningService {
-  // Base URLs mapped exactly to your Spring Boot RequestMappings
   private readonly baseUrl = `${environment.apiUrl}/learning`;
-  private readonly resourcesUrl = `${environment.apiUrl}/resources`; // Note: This controller doesn't use the /learning prefix
+  private readonly resourcesUrl = `${environment.apiUrl}/resources`;
 
   constructor(private http: HttpClient) {}
 
@@ -22,6 +21,7 @@ export class LearningService {
   // COURS MANAGEMENT (/api/learning/courses)
   // ==========================================
 
+  // CoursPostDto: { title, description, category } — no profId, no coursCode
   createCourse(request: CreateCoursRequest): Observable<Cours> {
     return this.http.post<Cours>(`${this.baseUrl}/courses`, request);
   }
@@ -42,8 +42,6 @@ export class LearningService {
     return this.http.delete<void>(`${this.baseUrl}/courses/${courseId}`);
   }
 
-  // NOTE: These were in your original frontend but are missing from the Java code you provided.
-  // Kept here with standard REST paths in case you have them in a different file.
   getCoursesByProfessor(profId: string): Observable<Cours[]> {
     return this.http.get<Cours[]>(`${this.baseUrl}/courses/prof/${profId}`);
   }
@@ -56,7 +54,7 @@ export class LearningService {
   // CHAPITRE MANAGEMENT (/api/learning/chapitres)
   // ==========================================
 
-  // FIXED: Backend requires courseId in the path
+  // ChapitrDto for POST: { title } only — courseId goes in URL path, not body
   createChapter(courseId: string, request: CreateChapterRequest): Observable<Chapter> {
     return this.http.post<Chapter>(`${this.baseUrl}/chapitres/${courseId}`, request);
   }
@@ -73,7 +71,6 @@ export class LearningService {
     return this.http.delete<void>(`${this.baseUrl}/chapitres/${chapterId}`);
   }
 
-  // NOTE: Missing from Java code provided, kept just in case.
   getChaptersByCourse(courseId: string): Observable<Chapter[]> {
     return this.http.get<Chapter[]>(`${this.baseUrl}/chapitres/course/${courseId}`);
   }
@@ -82,12 +79,11 @@ export class LearningService {
   // ENROLLMENT MANAGEMENT (/api/learning/enrolements)
   // ==========================================
 
-  // FIXED: Backend takes coursCode in URL and gets user from JWT. No body needed.
+  // POST /enrolements/{coursCode} — userId comes from JWT, no body needed
   enroll(coursCode: string): Observable<Enrollment> {
     return this.http.post<Enrollment>(`${this.baseUrl}/enrolements/${coursCode}`, {});
   }
 
-  // FIXED: Added missing delete endpoint from backend
   unenroll(enrolementId: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/enrolements/${enrolementId}`);
   }
@@ -96,14 +92,13 @@ export class LearningService {
   // RESOURCES MANAGEMENT (/api/resources)
   // ==========================================
 
-  // FIXED: Changed to match MultipartFile and @RequestParam needs of backend
-  uploadResource(chapterId: string, file: File, type: string, lien: string): Observable<any> {
+  uploadResource(file: File | null, type: string, lien: string, chapterId: string): Observable<any> {
     const formData = new FormData();
-    formData.append('file', file);
+    if (file !== null) {
+      formData.append('file', file);
+    }
     formData.append('type', type);
     formData.append('lien', lien);
-
-    // Notice this uses this.resourcesUrl instead of baseUrl
     return this.http.post<any>(`${this.resourcesUrl}/${chapterId}`, formData);
   }
 
@@ -112,7 +107,10 @@ export class LearningService {
   // ==========================================
 
   askTutor(question: string, studentId: string, courseId: string): Observable<{ answer: string }> {
-    const body = { question, studentId, courseId };
-    return this.http.post<{ answer: string }>(`${this.baseUrl}/tutor/ask`, body);
+    return this.http.post<{ answer: string }>(`${this.baseUrl}/tutor/ask`, {
+      question,
+      studentId,
+      courseId,
+    });
   }
 }

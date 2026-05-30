@@ -40,8 +40,10 @@ export class Createcours implements OnInit {
     this.error = null;
 
     // Uses POST /api/learning/courses
+    const profId = this.extractUserIdFromToken() ?? '';
     this.learningService.createCourse({
-      ...this.courseForm.value
+      ...this.courseForm.value,
+      profId,
     }).subscribe({
       next: (createdCourse) => {
         this.loading = false;
@@ -58,5 +60,16 @@ export class Createcours implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/Allcours']);
+  }
+
+  private extractUserIdFromToken(): string | null {
+    const token = localStorage.getItem('fraudly_access_token');
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1])) as Record<string, unknown>;
+      return (payload['userId'] ?? payload['sub'] ?? null) as string | null;
+    } catch {
+      return null;
+    }
   }
 }

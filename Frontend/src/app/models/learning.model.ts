@@ -1,9 +1,21 @@
+export interface Resource {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType: string;
+}
+
 export interface Chapter {
   id: string;
   title: string;
-  index: number;
   dateChapitre: string | null;
-  courseId: string;
+  resources: Resource[];
+}
+
+export interface Enrollment {
+  id: string;
+  studentId: string;
+  enrollmentDate: string | null;
 }
 
 export interface Cours {
@@ -11,17 +23,11 @@ export interface Cours {
   title: string;
   description: string;
   category: string;
-  coursCode: string;
   profId: string;
-  courseDate: string | null;
-  chapters?: Chapter[];
-}
-
-export interface Enrollment {
-  id: string;
-  studentId: string;
-  courseId: string;
-  enrollmentDate: string | null;
+  chapterCount: number;
+  coursCode: string;
+  chapters: Chapter[];
+  enrollments: Enrollment[];
 }
 
 export interface CreateCoursRequest {
@@ -33,11 +39,4 @@ export interface CreateCoursRequest {
 
 export interface CreateChapterRequest {
   title: string;
-  index: number;
-  courseId: string;
-}
-
-export interface EnrollRequest {
-  studentId: string;
-  courseId: string;
 }

@@ -1,0 +1,91 @@
+<main class="flex-1 p-12 bg-slate-50 min-h-screen">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between mb-10">
+    <div>
+      @if (chapter) {
+        <h1 class="text-4xl font-bold text-slate-900">{{ chapter.title }}</h1>
+        @if (chapter.dateChapitre) {
+          <p class="text-slate-500 text-sm mt-2">{{ chapter.dateChapitre | date:'MMMM d, y' }}</p>
+        }
+      } @else if (!loading) {
+        <h1 class="text-4xl font-bold text-slate-900">Chapter</h1>
+      }
+    </div>
+    <button
+      type="button"
+      (click)="goBack()"
+      class="px-6 py-3 rounded-2xl border border-slate-200 bg-white text-slate-700 font-semibold hover:bg-slate-50 transition">
+      ← Back
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  @if (loading) {
+    <div class="flex justify-center items-center h-48 text-slate-400 text-lg">
+      Loading chapter...
+    </div>
+  }
+
+  <!-- ERROR -->
+  @if (!loading && error) {
+    <div class="px-6 py-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 font-medium">
+      {{ error }}
+    </div>
+  }
+
+  <!-- CONTENT -->
+  @if (!loading && !error && chapter) {
+
+    <div class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+
+      <div class="px-8 py-6 border-b border-slate-100">
+        <h2 class="text-xl font-bold text-slate-800">Resources</h2>
+        <p class="text-sm text-slate-500 mt-1">
+          {{ (chapter.resources?.length ?? 0) }} resource(s) attached to this chapter
+        </p>
+      </div>
+
+      @if (!chapter.resources || chapter.resources.length === 0) {
+        <div class="flex justify-center items-center h-32 text-slate-400 text-sm">
+          No resources attached to this chapter.
+        </div>
+      } @else {
+        <div class="divide-y divide-slate-100">
+          @for (resource of chapter.resources; track resource.id) {
+            <div class="flex items-center gap-5 px-8 py-5 hover:bg-slate-50 transition">
+
+              <!-- Icon -->
+              <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-2xl shrink-0">
+                {{ getFileIcon(resource.mimeType) }}
+              </div>
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-base font-semibold text-slate-800 truncate">{{ resource.fileName }}</p>
+                <p class="text-xs text-slate-400 mt-0.5 truncate">{{ resource.mimeType || 'Unknown type' }}</p>
+              </div>
+
+              <!-- Open button -->
+              @if (resource.fileUrl) {
+                <button
+                  type="button"
+                  (click)="openResource(resource)"
+                  class="shrink-0 px-5 py-2.5 rounded-xl border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white text-sm font-semibold transition">
+                  Open
+                </button>
+              } @else {
+                <span class="shrink-0 px-5 py-2.5 rounded-xl bg-slate-100 text-slate-400 text-sm font-semibold cursor-not-allowed">
+                  Unavailable
+                </span>
+              }
+
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  }
+
+</main>

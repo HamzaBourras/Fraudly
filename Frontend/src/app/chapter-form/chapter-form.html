@@ -1,0 +1,41 @@
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-white p-10 rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100">
+    <h2 class="text-2xl font-bold mb-6 text-slate-900">
+      {{ chapter?.id ? 'Edit Chapter' : 'Add Chapter' }}
+    </h2>
+
+    <div class="space-y-4 mb-8">
+      <input [(ngModel)]="editingChapter.title" placeholder="Chapter Title" class="w-full p-4 rounded-xl border border-slate-200" />
+      <input type="number" [(ngModel)]="editingChapter.index" placeholder="Order Index" class="w-full p-4 rounded-xl border border-slate-200" />
+    </div>
+
+    <div class="bg-slate-50 p-6 rounded-2xl mb-8 space-y-4">
+      <h3 class="font-bold text-slate-800 mb-2">Add Resources</h3>
+
+      <div class="flex gap-3">
+        <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden" />
+
+        <button (click)="fileInput.click()" class="flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 hover:border-blue-500 hover:text-blue-600 font-semibold transition">
+          📂 Choose File
+        </button>
+        <button (click)="showLinkInput = !showLinkInput" class="flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 hover:border-blue-500 hover:text-blue-600 font-semibold transition">
+          🔗 Add Link
+        </button>
+      </div>
+
+      @if (showLinkInput) {
+        <div class="flex gap-2 animate-in fade-in">
+          <input [(ngModel)]="linkUrl" placeholder="https://..." class="flex-1 p-3 border rounded-xl" />
+          <button (click)="uploadLink()" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold">Save</button>
+        </div>
+      }
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <button (click)="close.emit()" class="px-6 py-3 text-slate-500 font-semibold">Cancel</button>
+      <button (click)="saveChapter()" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">
+        Save Chapter
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,70 +1,259 @@
-<main class="flex-1 p-12">
-  <div class="flex items-center justify-between mb-10">
+<main class="flex-1 p-12 bg-slate-50 min-h-screen">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-10">
     <div>
-      <h1 class="text-4xl font-bold mb-2">Manage Chapters</h1>
-      <p class="text-slate-500 text-sm font-mono">Course ID: {{ courseId }}</p>
+      <h1 class="text-4xl font-bold text-slate-900">Chapters</h1>
+      <p class="text-slate-500 text-sm font-mono mt-1">Course: {{ courseId }}</p>
     </div>
-    @if (isTeacher) {
-      <button (click)="showAddForm = !showAddForm" class="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">
-        + Add Chapter
-      </button>
-    }
+    <div class="flex items-center gap-3">
+      @if (isTeacher) {
+        <button
+          type="button"
+          (click)="openAddModal()"
+          class="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">
+          + Add Chapter
+        </button>
+      }
+      <a [routerLink]="['/Allcours']">
+        <button type="button"
+                class="px-6 py-3 rounded-2xl border border-slate-200 bg-white text-slate-700 font-semibold hover:bg-slate-50 transition">
+          ← Back to Courses
+        </button>
+      </a>
+    </div>
   </div>
 
+  <!-- LOADING -->
   @if (loading) {
-    <div class="flex justify-center items-center h-48 text-slate-400 text-lg">Loading chapters...</div>
+    <div class="flex justify-center items-center h-48 text-slate-400 text-lg">
+      Loading chapters...
+    </div>
   }
 
+  <!-- ERROR -->
   @if (!loading && error) {
-    <div class="px-6 py-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 font-medium mb-6">
+    <div class="px-6 py-4 mb-6 rounded-2xl bg-red-50 border border-red-200 text-red-700 font-medium">
       {{ error }}
     </div>
   }
 
-  @if (isTeacher && showAddForm) {
-    <div class="bg-white border border-blue-200 rounded-3xl p-8 mb-8 shadow-sm">
-      <h2 class="text-xl font-bold mb-6 text-slate-800">New Chapter</h2>
-      @if (saveError) {
-        <div class="px-4 py-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">{{ saveError }}</div>
-      }
-      <div class="grid grid-cols-4 gap-4 items-end">
-        <div class="col-span-2">
-          <label class="block text-sm font-semibold text-slate-600 mb-2">Title</label>
-          <input type="text" [(ngModel)]="newChapterTitle" placeholder="e.g., Intro to Networks" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-        </div>
-        <div>
-          <label class="block text-sm font-semibold text-slate-600 mb-2">Order Index</label>
-          <input type="number" [(ngModel)]="newChapterIndex" min="1" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-        </div>
-        <div class="flex gap-3">
-          <button (click)="saveChapter()" [disabled]="saving || !newChapterTitle.trim()" class="flex-1 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ saving ? 'Saving...' : 'Save' }}
-          </button>
-          <button type="button" (click)="showAddForm = false" class="px-4 py-3 rounded-xl border border-slate-300 hover:bg-slate-50 font-semibold transition">
-            Cancel
-          </button>
-        </div>
-      </div>
+  <!-- EMPTY STATE -->
+  @if (!loading && !error && chapters.length === 0) {
+    <div class="flex justify-center items-center h-48 text-slate-400 text-lg">
+      No chapters found for this course.
     </div>
   }
 
-  @if (!loading && !error) {
-    <div class="flex flex-col gap-4">
+  <!-- CHAPTER LIST -->
+  @if (!loading && chapters.length > 0) {
+    <div class="space-y-4">
       @for (chapter of chapters; track chapter.id) {
-        <div class="bg-white border border-slate-200 rounded-2xl px-8 py-6 flex items-center gap-6 shadow-sm hover:shadow-md transition">
-          <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg shrink-0">
-            {{ chapter.index }}
-          </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-5 shadow-sm hover:shadow-md transition cursor-pointer group"
+             (click)="navigateToDetail(chapter.id)">
+
+          <!-- Title + meta -->
           <div class="flex-1 min-w-0">
-            <h3 class="text-lg font-semibold text-slate-800 truncate">{{ chapter.title }}</h3>
-            @if (chapter.dateChapitre) {
-              <p class="text-sm text-slate-400 mt-0.5">{{ chapter.dateChapitre | date:'mediumDate' }}</p>
-            }
+            <h3 class="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition truncate">
+              {{ chapter.title }}
+            </h3>
+            <div class="flex items-center gap-4 mt-1">
+              @if (chapter.dateChapitre) {
+                <span class="text-xs text-slate-400">{{ chapter.dateChapitre | date:'MMM d, y' }}</span>
+              }
+              <span class="text-xs text-slate-400">
+                {{ (chapter.resources?.length ?? 0) }} resource(s)
+              </span>
+            </div>
           </div>
+
+          <!-- Resource count badge -->
+          @if ((chapter.resources?.length ?? 0) > 0) {
+            <span class="shrink-0 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
+              {{ chapter.resources.length }} file(s)
+            </span>
+          }
+
+          <!-- Teacher actions (stop propagation to avoid card navigation) -->
+          @if (isTeacher) {
+            <div class="flex items-center gap-2 shrink-0" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                (click)="openEditModal(chapter)"
+                class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 text-sm font-semibold transition">
+                Edit
+              </button>
+              <button
+                type="button"
+                (click)="deleteChapter(chapter.id)"
+                [disabled]="deletingId === chapter.id"
+                class="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                @if (deletingId === chapter.id) {
+                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Deleting...
+                } @else {
+                  Delete
+                }
+              </button>
+            </div>
+          }
+
         </div>
-      } @empty {
-        <div class="flex justify-center items-center h-48 text-slate-400 text-lg">No chapters found for this course.</div>
       }
     </div>
   }
+
 </main>
+
+<!-- CHAPTER MODAL -->
+@if (showChapterModal) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+       (click)="closeModal()">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg mx-4 p-8 max-h-[90vh] overflow-y-auto"
+         (click)="$event.stopPropagation()">
+
+      <!-- Modal header -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-slate-800">
+          {{ modalMode === 'edit' ? 'Edit Chapter' : 'Add Chapter' }}
+        </h2>
+        <button
+          (click)="closeModal()"
+          class="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition text-xl font-semibold">
+          ✕
+        </button>
+      </div>
+
+      <!-- Error -->
+      @if (modalError) {
+        <div class="px-4 py-3 mb-5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+          {{ modalError }}
+        </div>
+      }
+
+      <!-- Title field -->
+      <div class="mb-6">
+        <label class="block text-sm font-semibold text-slate-600 mb-2">
+          Chapter Title <span class="text-red-400">*</span>
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="modalTitle"
+          placeholder="e.g., Introduction to Supervised Learning"
+          class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-300 text-slate-800" />
+      </div>
+
+      <!-- Resources section (add mode only) -->
+      @if (modalMode === 'add') {
+        <div class="mb-6">
+          <p class="text-sm font-semibold text-slate-600 mb-3">Resources (optional)</p>
+
+          <!-- Add resource buttons -->
+          <div class="flex gap-3 mb-4">
+            <label class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 text-sm font-semibold transition cursor-pointer">
+              + Add File
+              <input type="file" multiple class="hidden" (change)="addFile($event)" />
+            </label>
+            @if (!showLinkInput) {
+              <button
+                type="button"
+                (click)="showLinkInput = true"
+                class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 text-sm font-semibold transition">
+                + Add Link
+              </button>
+            }
+          </div>
+
+          <!-- Inline link input -->
+          @if (showLinkInput) {
+            <div class="flex gap-2 mb-4">
+              <input
+                type="url"
+                [(ngModel)]="linkInput"
+                placeholder="https://..."
+                (keydown.enter)="addLink()"
+                class="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+              <button
+                type="button"
+                (click)="addLink()"
+                class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition">
+                Add
+              </button>
+              <button
+                type="button"
+                (click)="showLinkInput = false; linkInput = ''"
+                class="px-4 py-2 rounded-xl border border-slate-300 text-slate-500 hover:bg-slate-50 text-sm font-semibold transition">
+                Cancel
+              </button>
+            </div>
+          }
+
+          <!-- Pending resources list -->
+          @if (pendingFiles.length > 0 || pendingLinks.length > 0) {
+            <div class="space-y-2 mt-2">
+              @for (file of pendingFiles; track $index; let i = $index) {
+                <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-sm text-slate-700 truncate">{{ file.name }}</span>
+                  </div>
+                  <button type="button" (click)="removeFile(i)"
+                          class="shrink-0 ml-3 text-slate-400 hover:text-red-500 transition font-bold text-lg leading-none">
+                    ✕
+                  </button>
+                </div>
+              }
+              @for (link of pendingLinks; track $index; let i = $index) {
+                <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                    <span class="text-sm text-slate-700 truncate">{{ link }}</span>
+                  </div>
+                  <button type="button" (click)="removeLink(i)"
+                          class="shrink-0 ml-3 text-slate-400 hover:text-red-500 transition font-bold text-lg leading-none">
+                    ✕
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Modal footer -->
+      <div class="flex gap-3 pt-2 border-t border-slate-100">
+        <button
+          type="button"
+          (click)="closeModal()"
+          class="flex-1 px-4 py-3 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 font-semibold transition">
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="saveChapter()"
+          [disabled]="modalSaving || !modalTitle.trim()"
+          class="flex-1 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          @if (modalSaving) {
+            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Saving...
+          } @else {
+            {{ modalMode === 'edit' ? 'Update Chapter' : 'Save Chapter' }}
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

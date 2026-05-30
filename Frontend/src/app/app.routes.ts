@@ -18,6 +18,7 @@ import { ExamAttemptsComponent } from './exam-attempts/exam-attempts';
 import { ManualGradingComponent } from './manual-grading/manual-grading';
 import { QuestionEditorComponent } from './question-editor/question-editor';
 import { StudentAttemptsComponent } from './student-attempts/student-attempts';
+import { ChapiterDetailComponent } from './chapiter-detail/chapiter-detail';
 
 export const routes: Routes = [
   // Public routes
@@ -40,7 +41,8 @@ export const routes: Routes = [
 
   // Student-only routes
   { path: 'student-attempts/:studentId', component: StudentAttemptsComponent, canActivate: [authGuard, roleGuard], data: { expectedRole: 'ROLE_STUDENT' } },
-
+// Add to your routes array:
+  { path: 'chapiter-detail/:chapterId', component: ChapiterDetailComponent, canActivate: [authGuard] },
   // Learning service routes (auth only)
   { path: 'cours/:courseId', component: Cours, canActivate: [authGuard] },
   { path: 'createCours', component: Createcours, canActivate: [authGuard] },
