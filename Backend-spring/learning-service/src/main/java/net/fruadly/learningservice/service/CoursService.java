@@ -7,7 +7,6 @@ import net.fruadly.learningservice.dto.CoursPostDto;
 import net.fruadly.learningservice.entity.Cours;
 import net.fruadly.learningservice.mapper.CourseMapper;
 import net.fruadly.learningservice.repository.CoursRepository;
-import net.fruadly.learningservice.security.SecurityPrincipalUtils;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -22,7 +21,6 @@ public class CoursService {
 
     private final CoursRepository courseRepository;
     private final CourseMapper courseMapper;
-    private final SecurityPrincipalUtils securityPrincipalUtils;
 
     private String generate(int length) {
         final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -44,7 +42,7 @@ public class CoursService {
         cours.setDescription(coursPostDto.getDescription());
         cours.setCategory(coursPostDto.getCategory());
         cours.setCoursCode(generate(8));
-        cours.setProfId(securityPrincipalUtils.requireUserId());
+        cours.setProfId(coursPostDto.getProfId());
 
         Cours savedCourse = courseRepository.save(cours);
 

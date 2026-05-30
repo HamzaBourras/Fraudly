@@ -10,4 +10,5 @@ public class CoursPostDto {
     private String title;
     private String description;
     private String category;
+    private UUID profId;
 }
