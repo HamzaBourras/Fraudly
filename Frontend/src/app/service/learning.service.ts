@@ -92,13 +92,19 @@ export class LearningService {
   // RESOURCES MANAGEMENT (/api/resources)
   // ==========================================
 
+  // src/app/service/learning.service.ts
+
   uploadResource(file: File | null, type: string, lien: string, chapterId: string): Observable<any> {
     const formData = new FormData();
-    if (file !== null) {
+
+    if (file) {
       formData.append('file', file);
     }
+
     formData.append('type', type);
-    formData.append('lien', lien);
+    // Ensure we don't send "undefined" or "null" strings
+    formData.append('lien', lien || '');
+
     return this.http.post<any>(`${this.resourcesUrl}/${chapterId}`, formData);
   }
 

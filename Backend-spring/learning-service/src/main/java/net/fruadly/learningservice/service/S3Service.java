@@ -40,6 +40,9 @@ public class S3Service {
     private net.fruadly.learningservice.kafka.ResourceProducer resourceProducer;
 
     public ResourceDto uplodFile(MultipartFile file, String type, Chapter chapter) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty for file upload");
+        }
 
         Resource resource = new Resource();
         resource.setFileName(file.getOriginalFilename());
@@ -120,8 +123,10 @@ public class S3Service {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("chapitre non trouvé"));
 
-        return type.equals("lien")
-                ? uplodLien(lien, type, chapter)
-                : uplodFile(file, type, chapter);
+        if (file != null && !file.isEmpty()) {
+            return uplodFile(file, type, chapter);
+        } else {
+            return uplodLien(lien, type, chapter);
+        }
     }
 }

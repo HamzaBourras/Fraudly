@@ -21,11 +21,16 @@ import java.util.UUID;
 public class ResourceController {
     private final S3Service storageService;
 
-    @PostMapping("/{chapterId}")
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
-    public ResponseEntity<Map<String, ResourceDto>> upload(@RequestParam("file") MultipartFile file, @RequestParam String type,@RequestParam String lien,@PathVariable UUID chapterId) throws IOException {
-        ResourceDto resource = storageService.uploadResource(file,type,lien,chapterId);
-        return ResponseEntity.ok(Map.of("key", resource));
+    @PostMapping("/{chapterId}")
+    public ResponseEntity<Map<String, ResourceDto>> upload(
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam String type,
+            @RequestParam(value = "lien", required = false) String lien,
+            @PathVariable UUID chapterId) throws IOException {
+
+        ResourceDto resource = storageService.uploadResource(file, type, lien, chapterId);
+        return ResponseEntity.ok(Map.of("resource", resource));
     }
 
 

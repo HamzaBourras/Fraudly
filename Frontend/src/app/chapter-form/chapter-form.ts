@@ -26,26 +26,28 @@ export class ChapterForm implements OnInit {
     if (this.chapter) this.editingChapter = { ...this.chapter };
   }
 
+  // Inside chapter-form.ts
+
+// 1. Update onFileSelected
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file && this.chapter?.id) {
-      this.learningService.uploadResource(this.chapter.id, file, 'PDF', file.name).subscribe(() => {
-        alert("File uploaded!");
-      });
-    } else {
-      alert("Please save the chapter first!");
+      // Correct Order: (file, type, lien, chapterId)
+      this.learningService.uploadResource(file, 'PDF', file.name, this.chapter.id)
+        .subscribe(() => alert("File uploaded!"));
     }
   }
 
+// 2. Update uploadLink
   uploadLink() {
     if (this.linkUrl && this.chapter?.id) {
-      this.learningService.uploadResource(this.chapter.id, "", 'LINK', this.linkUrl).subscribe(() => {
-        alert("Link saved!");
-        this.linkUrl = '';
-        this.showLinkInput = false;
-      });
-    } else {
-      alert("Save chapter first or enter a link!");
+      // Correct Order: (file, type, lien, chapterId)
+      this.learningService.uploadResource(null, 'LINK', this.linkUrl, this.chapter.id)
+        .subscribe(() => {
+          alert("Link saved!");
+          this.linkUrl = '';
+          this.showLinkInput = false;
+        });
     }
   }
 
