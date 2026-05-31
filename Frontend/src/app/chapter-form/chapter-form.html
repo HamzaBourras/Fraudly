@@ -1,5 +1,5 @@
 <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-  <div class="bg-white p-10 rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100">
+  <div class="bg-white p-10 rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
     <h2 class="text-2xl font-bold mb-6 text-slate-900">
       {{ chapter?.id ? 'Edit Chapter' : 'Add Chapter' }}
     </h2>
@@ -11,6 +11,24 @@
 
     <div class="bg-slate-50 p-6 rounded-2xl mb-8 space-y-4">
       <h3 class="font-bold text-slate-800 mb-2">Add Resources</h3>
+
+      <!-- Staged Resources List -->
+      @if (pendingFiles.length > 0 || pendingLinks.length > 0) {
+        <div class="space-y-2 mb-4">
+          @for (file of pendingFiles; track $index) {
+            <div class="flex items-center justify-between bg-white p-2 px-3 rounded-lg border border-slate-200 text-sm">
+              <span class="truncate max-w-[200px]">📄 {{ file.name }}</span>
+              <button (click)="removePendingFile($index)" class="text-red-500 hover:text-red-700">✕</button>
+            </div>
+          }
+          @for (link of pendingLinks; track $index) {
+            <div class="flex items-center justify-between bg-white p-2 px-3 rounded-lg border border-slate-200 text-sm">
+              <span class="truncate max-w-[200px]">🔗 {{ link }}</span>
+              <button (click)="removePendingLink($index)" class="text-red-500 hover:text-red-700">✕</button>
+            </div>
+          }
+        </div>
+      }
 
       <div class="flex gap-3">
         <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden" />
@@ -26,15 +44,18 @@
       @if (showLinkInput) {
         <div class="flex gap-2 animate-in fade-in">
           <input [(ngModel)]="linkUrl" placeholder="https://..." class="flex-1 p-3 border rounded-xl" />
-          <button (click)="uploadLink()" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold">Save</button>
+          <button (click)="addPendingLink()" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold">Add</button>
         </div>
       }
     </div>
 
     <div class="flex justify-end gap-3">
-      <button (click)="close.emit()" class="px-6 py-3 text-slate-500 font-semibold">Cancel</button>
-      <button (click)="saveChapter()" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">
-        Save Chapter
+      <button (click)="close.emit()" [disabled]="loading" class="px-6 py-3 text-slate-500 font-semibold">Cancel</button>
+      <button (click)="saveChapter()" [disabled]="loading || !editingChapter.title" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition flex items-center gap-2">
+        @if (loading) {
+          <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+        }
+        {{ chapter?.id ? 'Update Chapter' : 'Save Chapter' }}
       </button>
     </div>
   </div>

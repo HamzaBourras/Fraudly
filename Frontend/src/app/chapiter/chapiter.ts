@@ -224,6 +224,6 @@ export class Chapiter implements OnInit {
   }
 
   navigateToDetail(chapterId: string): void {
-    this.router.navigate(['/chapitre-detail', chapterId]);
+    this.router.navigate(['/chapiter-detail', chapterId]);
   }
 }

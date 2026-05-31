@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LearningService } from '../service/learning.service';
+import { forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-chapter-form',
@@ -20,44 +21,90 @@ export class ChapterForm implements OnInit {
   showLinkInput = false;
   linkUrl = '';
 
-  constructor(private learningService: LearningService) {}
+  // Staging for resources
+  pendingFiles: File[] = [];
+  pendingLinks: string[] = [];
+  loading = false;
+
+  constructor(
+    private learningService: LearningService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    if (this.chapter) this.editingChapter = { ...this.chapter };
+    if (this.chapter) {
+      this.editingChapter = { ...this.chapter };
+    }
   }
 
-  // Inside chapter-form.ts
-
-// 1. Update onFileSelected
   onFileSelected(event: any) {
     const file = event.target.files[0];
-    if (file && this.chapter?.id) {
-      // Correct Order: (file, type, lien, chapterId)
-      this.learningService.uploadResource(file, 'PDF', file.name, this.chapter.id)
-        .subscribe(() => alert("File uploaded!"));
+    if (file) {
+      this.pendingFiles.push(file);
+      this.cdr.detectChanges();
     }
   }
 
-// 2. Update uploadLink
-  uploadLink() {
-    if (this.linkUrl && this.chapter?.id) {
-      // Correct Order: (file, type, lien, chapterId)
-      this.learningService.uploadResource(null, 'LINK', this.linkUrl, this.chapter.id)
-        .subscribe(() => {
-          alert("Link saved!");
-          this.linkUrl = '';
-          this.showLinkInput = false;
-        });
+  removePendingFile(index: number) {
+    this.pendingFiles.splice(index, 1);
+  }
+
+  addPendingLink() {
+    if (this.linkUrl.trim()) {
+      this.pendingLinks.push(this.linkUrl.trim());
+      this.linkUrl = '';
+      this.showLinkInput = false;
+      this.cdr.detectChanges();
     }
+  }
+
+  removePendingLink(index: number) {
+    this.pendingLinks.splice(index, 1);
   }
 
   saveChapter() {
-    const payload = { title: this.editingChapter.title, index: this.editingChapter.index, courseId: this.courseId };
+    if (!this.editingChapter.title.trim()) return;
 
-    if (this.chapter?.id) {
-      this.learningService.updateChapter(this.chapter.id, payload as any).subscribe(() => this.saved.emit());
-    } else {
-      this.learningService.createChapter(this.courseId, payload as any).subscribe(() => this.saved.emit());
-    }
+    this.loading = true;
+    const payload = { 
+      title: this.editingChapter.title, 
+      index: this.editingChapter.index 
+    };
+
+    const obs$ = this.chapter?.id
+      ? this.learningService.updateChapter(this.chapter.id, payload as any)
+      : this.learningService.createChapter(this.courseId, payload as any);
+
+    obs$.subscribe({
+      next: (savedChapter) => {
+        const currentChapterId = savedChapter.id;
+        
+        const uploads = [
+          ...this.pendingFiles.map(f => this.learningService.uploadResource(f, 'PDF', '', currentChapterId)),
+          ...this.pendingLinks.map(l => this.learningService.uploadResource(null, 'lien', l, currentChapterId))
+        ];
+
+        if (uploads.length > 0) {
+          forkJoin(uploads).subscribe({
+            next: () => {
+              this.loading = false;
+              this.saved.emit();
+            },
+            error: (err) => {
+              console.error("Resource upload failed", err);
+              this.loading = false;
+              this.saved.emit(); // Still emit saved if metadata worked
+            }
+          });
+        } else {
+          this.loading = false;
+          this.saved.emit();
+        }
+      },
+      error: (err) => {
+        this.loading = false;
+        alert("Failed to save chapter: " + (err.error?.message || err.message));
+      }
+    });
   }
 }
