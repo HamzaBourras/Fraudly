@@ -4,6 +4,8 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { AssessmentService } from '../service/assessment.service';
 import { AuthService } from '../core/services/auth.service';
 import { ExamResponse, Difficulty } from '../models/assessment.model';
+import { LearningService } from '../service/learning.service';
+import { Cours } from '../models/learning.model';
 
 @Component({
   selector: 'app-list-exemane',
@@ -21,13 +23,11 @@ export class ListExemane implements OnInit {
   showCourseModal = false;
   private actionLoadingIds = new Set<string>();
 
-  readonly courses = [
-    { id: '66666666-6666-6666-6666-666666666666', title: 'Machine Learning' },
-    { id: '77777777-7777-7777-7777-777777777777', title: 'Cloud Computing' },
-  ];
+  courses: Cours[] = [];
 
   constructor(
     private assessmentService: AssessmentService,
+    private learningService: LearningService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -37,6 +37,12 @@ export class ListExemane implements OnInit {
   ngOnInit(): void {
     this.isTeacher = this.authService.isProfessor();
     this.isStudent = this.authService.isStudent();
+
+    if (this.isTeacher) {
+      this.learningService.getAllCourses().subscribe({
+        next: (courses) => { this.courses = courses; },
+      });
+    }
 
     const courseId = this.route.snapshot.queryParamMap.get('courseId');
 
