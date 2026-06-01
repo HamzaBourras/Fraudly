@@ -3,7 +3,7 @@ FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
 COPY pom.xml .
 # Cache dependencies (Crucial for disk space management!)
-RUN mvn dependency:go-offline -B
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests
 

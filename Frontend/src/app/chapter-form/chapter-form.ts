@@ -31,6 +31,14 @@ export class ChapterForm implements OnInit {
     private cdr: ChangeDetectorRef
   ) {}
 
+  formatExternalUrl(url: string): string {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return `https://${url}`;
+  }
+
   ngOnInit() {
     if (this.chapter) {
       this.editingChapter = { ...this.chapter };
@@ -66,22 +74,23 @@ export class ChapterForm implements OnInit {
     if (!this.editingChapter.title.trim()) return;
 
     this.loading = true;
-    const payload = { 
-      title: this.editingChapter.title, 
-      index: this.editingChapter.index 
-    };
+    const payload = { title: this.editingChapter.title.trim() };
 
     const obs$ = this.chapter?.id
-      ? this.learningService.updateChapter(this.chapter.id, payload as any)
-      : this.learningService.createChapter(this.courseId, payload as any);
+      ? this.learningService.updateChapter(this.chapter.id, payload)
+      : this.learningService.createChapter(this.courseId, payload);
 
     obs$.subscribe({
       next: (savedChapter) => {
         const currentChapterId = savedChapter.id;
-        
+
         const uploads = [
-          ...this.pendingFiles.map(f => this.learningService.uploadResource(f, 'PDF', '', currentChapterId)),
-          ...this.pendingLinks.map(l => this.learningService.uploadResource(null, 'lien', l, currentChapterId))
+          ...this.pendingFiles.map(f =>
+            this.learningService.uploadResource(f, f.type || 'application/octet-stream', '', currentChapterId)
+          ),
+          ...this.pendingLinks.map(l =>
+            this.learningService.uploadResource(null, 'lien', l, currentChapterId)
+          ),
         ];
 
         if (uploads.length > 0) {

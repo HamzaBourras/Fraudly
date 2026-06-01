@@ -5,9 +5,12 @@ import lombok.RequiredArgsConstructor;
 import net.fruadly.learningservice.dto.CoursGetDto;
 import net.fruadly.learningservice.dto.CoursPostDto;
 import net.fruadly.learningservice.entity.Cours;
+import net.fruadly.learningservice.entity.Enrollment;
 import net.fruadly.learningservice.mapper.CourseMapper;
 import net.fruadly.learningservice.repository.CoursRepository;
+import net.fruadly.learningservice.repository.EnrollmentRepository;
 import org.springframework.stereotype.Service;
+
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -21,6 +24,7 @@ public class CoursService {
 
     private final CoursRepository courseRepository;
     private final CourseMapper courseMapper;
+    private final EnrollmentRepository enrollmentRepository;
 
     private String generate(int length) {
         final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -77,5 +81,12 @@ public class CoursService {
             throw new RuntimeException("Impossible de supprimer : Cours non trouvé");
         }
         courseRepository.deleteById(id);
+    }
+
+    public List<CoursGetDto> getEnrolledCourses(UUID studentId) {
+        return enrollmentRepository.findByStudentId(studentId).stream()
+                .map(Enrollment::getCourse)
+                .map(courseMapper::toGetDto)
+                .collect(Collectors.toList());
     }
 }

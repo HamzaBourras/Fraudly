@@ -3,22 +3,26 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LearningService } from '../service/learning.service';
+import { AssessmentService } from '../service/assessment.service';
 import { AuthService } from '../core/services/auth.service';
-import { ChapterForm } from '../chapter-form/chapter-form'; // CRITICAL IMPORT
+import { ChapterForm } from '../chapter-form/chapter-form';
+import { ExamResponse } from '../models/assessment.model';
 
 @Component({
   selector: 'app-cours',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ChapterForm], // CRITICAL: Added ChapterForm
+  imports: [CommonModule, FormsModule, RouterLink, ChapterForm],
   templateUrl: './cours.html',
   styleUrl: './cours.css',
 })
 export class Cours implements OnInit {
   course: any = null;
+  exams: ExamResponse[] = [];
   loading = true;
   error = '';
   courseId: string | null = null;
   isTeacher = false;
+  isEnrolled = false;
 
   // Modal State
   showModal = false;
@@ -27,6 +31,7 @@ export class Cours implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private learningService: LearningService,
+    private assessmentService: AssessmentService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -47,8 +52,22 @@ export class Cours implements OnInit {
         if (this.course?.chapters) {
           this.course.chapters.sort((a: any, b: any) => a.index - b.index);
         }
-        this.loading = false;
-        this.cdr.detectChanges();
+
+        const userId = this.authService.getUserId();
+        this.isEnrolled = this.isTeacher || (this.course?.enrollments?.some((e: any) => e.studentId === userId) ?? false);
+
+        // Fetch exams
+        this.assessmentService.getExamsByCourse(id).subscribe({
+          next: (res) => {
+            this.exams = res.filter(e => e.status === 'PUBLISHED');
+            this.loading = false;
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
+        });
       },
       error: () => {
         this.error = 'Failed to load course details.';

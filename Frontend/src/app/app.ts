@@ -14,7 +14,7 @@ import { filter } from 'rxjs/operators';
 export class App implements OnInit {
   userName = 'Guest';
   userInitials = '?';
-  userRole = '';
+  userRole: string = '';
 
   constructor(public authService: AuthService, public router: Router) {}
 

@@ -40,6 +40,7 @@ export const routes: Routes = [
   { path: 'exam-builder', component: ExamBuilderComponent, canActivate: [authGuard, roleGuard], data: { expectedRole: 'ROLE_TEACHER' } },
 
   // Student-only routes
+  { path: 'student-attempts', component: StudentAttemptsComponent, canActivate: [authGuard, roleGuard], data: { expectedRole: 'ROLE_STUDENT' } },
   { path: 'student-attempts/:studentId', component: StudentAttemptsComponent, canActivate: [authGuard, roleGuard], data: { expectedRole: 'ROLE_STUDENT' } },
 // Add to your routes array:
   { path: 'chapiter-detail/:chapterId', component: ChapiterDetailComponent, canActivate: [authGuard] },

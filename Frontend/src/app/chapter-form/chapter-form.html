@@ -10,7 +10,24 @@
     </div>
 
     <div class="bg-slate-50 p-6 rounded-2xl mb-8 space-y-4">
-      <h3 class="font-bold text-slate-800 mb-2">Add Resources</h3>
+      <h3 class="font-bold text-slate-800 mb-2">Resources</h3>
+
+      <!-- Existing Resources (if editing) -->
+      @if (editingChapter.resources && editingChapter.resources.length > 0) {
+        <div class="space-y-2 mb-4">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Existing Resources</p>
+          @for (res of editingChapter.resources; track res.id) {
+            <div class="flex items-center justify-between bg-white p-2 px-3 rounded-lg border border-slate-200 text-sm">
+              <span class="truncate max-w-[200px]">
+                {{ res.mimeType === 'lien' ? '🔗' : '📄' }} {{ res.fileName || res.fileUrl }}
+              </span>
+              <a [href]="formatExternalUrl(res.fileUrl)" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 font-semibold">Open</a>
+            </div>
+          }
+        </div>
+      }
+
+      <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Add New Resources</p>
 
       <!-- Staged Resources List -->
       @if (pendingFiles.length > 0 || pendingLinks.length > 0) {

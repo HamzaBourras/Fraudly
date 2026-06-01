@@ -16,7 +16,7 @@
             <button (click)="openAddModal()" class="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition shadow-md">
               + Add Chapter
             </button>
-          } @else {
+          } @else if (!isEnrolled) {
             <button (click)="enrollInCourse()" class="px-6 py-3 rounded-2xl bg-green-600 text-white font-semibold shadow-md">
               Enroll Now
             </button>
@@ -30,7 +30,7 @@
         <div class="bg-white border border-slate-200 rounded-3xl p-8 hover:shadow-md transition">
           <div class="flex justify-between items-center mb-4">
             <a routerLink="/chapiter-detail/{{chapter.id}}" class="text-2xl font-bold text-slate-800 hover:text-blue-600 cursor-pointer">
-              {{ chapter.index }}. {{ chapter.title }}
+              {{ chapter.title }}
             </a>
             @if (isTeacher) {
               <div class="flex gap-3">
@@ -41,12 +41,29 @@
           </div>
           <div class="flex gap-2">
             @for (res of chapter.resources; track res.id) {
-              <span class="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">{{ res.type }}</span>
+              <span class="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">{{ res.mimeType }}</span>
             }
           </div>
         </div>
       }
     </div>
+
+    @if (!isTeacher && exams.length > 0) {
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8 mt-8">
+        <h3 class="text-xl font-bold text-slate-800 mb-4">📝 Available Exams</h3>
+        <div class="space-y-3">
+          @for (exam of exams; track exam.id) {
+            <div class="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50 hover:border-blue-300 transition">
+              <div>
+                <h4 class="font-bold text-slate-800">{{ exam.title }}</h4>
+                <p class="text-sm text-slate-500">{{ exam.durationMinutes }} Minutes • Auto-Proctored</p>
+              </div>
+              <a [routerLink]="['/examen', exam.id]" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-sm">Start Exam</a>
+            </div>
+          }
+        </div>
+      </div>
+    }
   }
 
   @if (showModal) {

@@ -150,60 +150,44 @@ export class Chapiter implements OnInit {
     this.modalSaving = true;
     this.modalError = '';
 
-    if (this.modalMode === 'edit' && this.editingChapter) {
-      this.learningService.updateChapter(this.editingChapter.id, {
-        title: this.modalTitle.trim(),
-      }).subscribe({
-        next: (updated) => {
-          this.chapters = this.chapters.map(c => c.id === updated.id ? updated : c);
-          this.modalSaving = false;
-          this.closeModal();
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.modalError = err?.error?.message || 'Failed to update chapter.';
-          this.modalSaving = false;
-          this.cdr.detectChanges();
-        },
-      });
-    } else {
-      // CREATE — then upload any pending resources
-      this.learningService.createChapter(this.courseId, {
-        title: this.modalTitle.trim(),
-      }).subscribe({
-        next: (chapter) => {
-          const newChapterId = chapter.id;
-          const uploads = [
-            ...this.pendingFiles.map(f =>
-              this.learningService.uploadResource(f, f.type || 'application/octet-stream', '', newChapterId)
-            ),
-            ...this.pendingLinks.map(link =>
-              this.learningService.uploadResource(null, 'lien', link, newChapterId)
-            ),
-          ];
+    const payload = { title: this.modalTitle.trim() };
+    const obs$ = (this.modalMode === 'edit' && this.editingChapter)
+      ? this.learningService.updateChapter(this.editingChapter.id, payload)
+      : this.learningService.createChapter(this.courseId, payload);
 
-          const done$ = uploads.length > 0 ? forkJoin(uploads) : of([]);
-          done$.subscribe({
-            next: () => {
-              this.modalSaving = false;
-              this.closeModal();
-              this.loadChapters();
-            },
-            error: () => {
-              // Chapter created, but some uploads failed — still refresh
-              this.modalSaving = false;
-              this.closeModal();
-              this.loadChapters();
-            },
-          });
-        },
-        error: (err) => {
-          this.modalError = err?.error?.message || 'Failed to create chapter.';
-          this.modalSaving = false;
-          this.cdr.detectChanges();
-        },
-      });
-    }
+    obs$.subscribe({
+      next: (chapter) => {
+        const chapterId = chapter.id;
+        const uploads = [
+          ...this.pendingFiles.map(f =>
+            this.learningService.uploadResource(f, f.type || 'application/octet-stream', '', chapterId)
+          ),
+          ...this.pendingLinks.map(link =>
+            this.learningService.uploadResource(null, 'lien', link, chapterId)
+          ),
+        ];
+
+        const done$ = uploads.length > 0 ? forkJoin(uploads) : of([]);
+        done$.subscribe({
+          next: () => {
+            this.modalSaving = false;
+            this.closeModal();
+            this.loadChapters();
+          },
+          error: () => {
+            // metadata saved, but some uploads failed — still refresh
+            this.modalSaving = false;
+            this.closeModal();
+            this.loadChapters();
+          },
+        });
+      },
+      error: (err) => {
+        this.modalError = err?.error?.message || `Failed to ${this.modalMode === 'edit' ? 'update' : 'create'} chapter.`;
+        this.modalSaving = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   // --- Delete ---

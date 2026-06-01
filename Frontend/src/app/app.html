@@ -32,17 +32,22 @@
                  class="block px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition duration-300">
                 Proctoring Review
               </a>
-
-              <a routerLink="/assistant" routerLinkActive="bg-blue-50 text-blue-600 font-semibold"
-                 class="block px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition duration-300">
-                AI Assistant
-              </a>
             }
 
             @if (userRole === 'Student') {
               <a routerLink="/Allcours" routerLinkActive="bg-blue-50 text-blue-600 font-semibold"
                  class="block px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition duration-300">
                 Courses
+              </a>
+
+              <a routerLink="/listexemen" routerLinkActive="bg-blue-50 text-blue-600 font-semibold"
+                 class="block px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition duration-300">
+                Examens
+              </a>
+
+              <a routerLink="/student-attempts" routerLinkActive="bg-blue-50 text-blue-600 font-semibold"
+                 class="block px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition duration-300">
+                My Exams
               </a>
 
               <a routerLink="/assistant" routerLinkActive="bg-blue-50 text-blue-600 font-semibold"

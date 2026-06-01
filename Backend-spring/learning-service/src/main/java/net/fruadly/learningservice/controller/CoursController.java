@@ -55,4 +55,11 @@ public class CoursController {
         courseService.deleteCourse(id);
         return ResponseEntity.noContent().build();
     }
+
+    // Récupérer les cours auxquels un étudiant est inscrit
+    @GetMapping("/student/{studentId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CoursGetDto>> getEnrolledCourses(@PathVariable UUID studentId) {
+        return ResponseEntity.ok(courseService.getEnrolledCourses(studentId));
+    }
 }

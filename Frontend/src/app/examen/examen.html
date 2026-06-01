@@ -1,5 +1,12 @@
 <div class="flex flex-col min-h-screen bg-slate-50">
 
+  <!-- Auto-submit banner -->
+  @if (autoSubmitMessage) {
+    <div class="fixed top-0 inset-x-0 z-50 bg-red-600 text-white text-center py-4 font-semibold text-lg shadow-lg">
+      {{ autoSubmitMessage }}
+    </div>
+  }
+
   <!-- Loading State -->
   @if (loading) {
     <div class="flex-1 flex items-center justify-center">
@@ -146,8 +153,8 @@
             </textarea>
           }
 
-          <!-- QCM_SINGLE | TRUE_FALSE: radio buttons (disabled in preview) -->
-          @if (currentQuestion.type === 'QCM_SINGLE' || currentQuestion.type === 'TRUE_FALSE') {
+          <!-- QCM_SINGLE: radio buttons (disabled in preview) -->
+          @if (currentQuestion.type === 'QCM_SINGLE') {
             <div class="space-y-4">
               @for (choice of currentQuestion.choices; track choice.id) {
                 <label class="flex items-center gap-4 border rounded-2xl p-5 transition-colors"
@@ -168,6 +175,42 @@
                   </span>
                 </label>
               }
+            </div>
+          }
+
+          <!-- TRUE_FALSE: hardcoded Vrai/Faux options -->
+          @if (currentQuestion.type === 'TRUE_FALSE') {
+            <div class="space-y-4">
+              <label class="flex items-center gap-4 border rounded-2xl p-5 transition-colors"
+                     [class.cursor-pointer]="!isProfessorPreview"
+                     [class.cursor-default]="isProfessorPreview"
+                     [class.border-blue-500]="getSelectedChoiceId(currentQuestion.id) === 'TRUE'"
+                     [class.bg-blue-50]="getSelectedChoiceId(currentQuestion.id) === 'TRUE'"
+                     [class.border-slate-200]="getSelectedChoiceId(currentQuestion.id) !== 'TRUE'">
+                <input type="radio"
+                       class="w-5 h-5 accent-blue-600 shrink-0"
+                       [name]="'q-' + currentQuestion.id"
+                       value="TRUE"
+                       [disabled]="isProfessorPreview"
+                       [checked]="getSelectedChoiceId(currentQuestion.id) === 'TRUE'"
+                       (change)="setSelectedChoiceId(currentQuestion.id, 'TRUE')">
+                <span class="text-base leading-relaxed font-semibold">Vrai</span>
+              </label>
+              <label class="flex items-center gap-4 border rounded-2xl p-5 transition-colors"
+                     [class.cursor-pointer]="!isProfessorPreview"
+                     [class.cursor-default]="isProfessorPreview"
+                     [class.border-blue-500]="getSelectedChoiceId(currentQuestion.id) === 'FALSE'"
+                     [class.bg-blue-50]="getSelectedChoiceId(currentQuestion.id) === 'FALSE'"
+                     [class.border-slate-200]="getSelectedChoiceId(currentQuestion.id) !== 'FALSE'">
+                <input type="radio"
+                       class="w-5 h-5 accent-blue-600 shrink-0"
+                       [name]="'q-' + currentQuestion.id"
+                       value="FALSE"
+                       [disabled]="isProfessorPreview"
+                       [checked]="getSelectedChoiceId(currentQuestion.id) === 'FALSE'"
+                       (change)="setSelectedChoiceId(currentQuestion.id, 'FALSE')">
+                <span class="text-base leading-relaxed font-semibold">Faux</span>
+              </label>
             </div>
           }
 

@@ -20,7 +20,7 @@ RUN useradd -m appuser
 
 # Copy requirements and install
 COPY requirement.txt .
-RUN pip install --no-cache-dir -r requirement.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirement.txt
 
 # Copy application code and set ownership to appuser
 COPY --chown=appuser:appuser . .

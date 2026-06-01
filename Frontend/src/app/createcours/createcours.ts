@@ -47,8 +47,12 @@ export class Createcours implements OnInit {
     }).subscribe({
       next: (createdCourse) => {
         this.loading = false;
-        // Navigate directly to the newly created course details
-        this.router.navigate(['/cours', createdCourse.id]);
+        // Navigate to chapters for the newly created course using its UUID id
+        if (createdCourse?.id) {
+          this.router.navigate(['/chapitre', createdCourse.id]);
+        } else {
+          this.router.navigate(['/Allcours']);
+        }
       },
       error: (err) => {
         this.loading = false;

@@ -39,6 +39,7 @@ export class Examen implements OnInit, OnDestroy {
   error: string | null = null;
   submitted = false;
   submitting = false;
+  autoSubmitMessage: string | null = null;
   isProfessorPreview = false;
 
   currentIndex = 0;
@@ -89,7 +90,9 @@ export class Examen implements OnInit, OnDestroy {
         this.exam = exam;
         this.initAnswerMap(exam);
 
-        this.assessmentService.startAttempt({ studentId: userId, examId }).subscribe({
+        const startBody = { studentId: userId, examId };
+        console.log('[startAttempt] request body:', startBody);
+        this.assessmentService.startAttempt(startBody).subscribe({
           next: (attempt) => {
             this.attempt = attempt;
             this.loading = false;
@@ -286,6 +289,7 @@ export class Examen implements OnInit, OnDestroy {
           clearInterval(this.timerInterval);
           this.timerInterval = null;
         }
+        this.router.navigate(['/listexemen']);
       },
       error: () => {
         this.error = 'Submission failed. Please try again.';
@@ -319,6 +323,7 @@ export class Examen implements OnInit, OnDestroy {
       } else {
         clearInterval(this.timerInterval!);
         this.timerInterval = null;
+        this.autoSubmitMessage = 'Temps écoulé — soumission automatique';
         this.submitExam();
       }
     }, 1000);

@@ -57,9 +57,8 @@ export class ChapiterDetailComponent implements OnInit {
   }
 
   openResource(resource: Resource): void {
-    if (resource.fileUrl) {
-      window.open(resource.fileUrl, '_blank', 'noopener,noreferrer');
-    }
+    const url = resource.fileUrl?.startsWith('http') ? resource.fileUrl : 'https://' + resource.fileUrl;
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   goBack(): void {
