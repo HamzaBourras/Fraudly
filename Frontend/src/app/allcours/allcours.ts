@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { LearningService } from '../service/learning.service';
 import { AuthService } from '../core/services/auth.service';
 import { Cours } from '../models/learning.model';
@@ -26,10 +27,13 @@ export class Allcours implements OnInit {
   enrollError = '';
   enrolling = false;
 
+  deletingCourseId: string | null = null;
+
   // Students panel (teacher)
   showStudentsPanel = false;
   selectedCourseStudents: { studentId: string }[] = [];
   selectedCourseTitle = '';
+  studentNames: Map<string, string> = new Map();
 
   constructor(
     private learningService: LearningService,
@@ -115,10 +119,48 @@ export class Allcours implements OnInit {
     this.selectedCourseTitle = course.title;
     this.selectedCourseStudents = (course.enrollments ?? []).map(e => ({ studentId: e.studentId }));
     this.showStudentsPanel = true;
+    this.loadStudentNames(this.selectedCourseStudents);
   }
 
   closeStudentsPanel(): void {
     this.showStudentsPanel = false;
+  }
+
+  loadStudentNames(enrollments: { studentId: string }[]): void {
+    const uniqueIds = [...new Set(enrollments.map(e => e.studentId))];
+    if (uniqueIds.length === 0) return;
+    forkJoin(uniqueIds.map(id => this.learningService.getUserById(id))).subscribe({
+      next: (users) => {
+        users.forEach((user, i) => this.studentNames.set(uniqueIds[i], user.fullName));
+        this.cdr.detectChanges();
+      },
+      error: () => { this.cdr.detectChanges(); },
+    });
+  }
+
+  getStudentName(studentId: string): string {
+    return this.studentNames.get(studentId) ?? 'Chargement...';
+  }
+
+  getStudentInitials(studentId: string): string {
+    const name = this.studentNames.get(studentId);
+    if (!name) return '?';
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  deleteCourse(courseId: string): void {
+    this.deletingCourseId = courseId;
+    this.learningService.deleteCourse(courseId).subscribe({
+      next: () => {
+        this.courses = this.courses.filter(c => c.id !== courseId);
+        this.deletingCourseId = null;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.deletingCourseId = null;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   private extractUserIdFromToken(): string | null {

@@ -109,6 +109,16 @@ export class LearningService {
   }
 
   // ==========================================
+  // AUTH — internal user lookup
+  // ==========================================
+
+  getUserById(userId: string): Observable<{ id: string; fullName: string; email: string }> {
+    return this.http.get<{ id: string; fullName: string; email: string }>(
+      `${environment.apiUrl}/auth/internal/users/${userId}`
+    );
+  }
+
+  // ==========================================
   // AI TUTOR (/api/learning/tutor)
   // ==========================================
 
