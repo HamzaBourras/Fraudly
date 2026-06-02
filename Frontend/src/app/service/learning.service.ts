@@ -125,7 +125,7 @@ export class LearningService {
 
   getUserById(userId: string): Observable<{ id: string; fullName: string; email: string }> {
     return this.http.get<{ id: string; fullName: string; email: string }>(
-      `${environment.apiUrl}/auth/internal/users/${userId}`
+      `${environment.apiUrl}/auth/users/${userId}`
     );
   }
 
