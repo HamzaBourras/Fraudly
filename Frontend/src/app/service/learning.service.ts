@@ -79,9 +79,20 @@ export class LearningService {
   // ENROLLMENT MANAGEMENT (/api/learning/enrolements)
   // ==========================================
 
-  // POST /enrolements/{coursCode} — userId comes from JWT, no body needed
   enroll(coursCode: string): Observable<Enrollment> {
-    return this.http.post<Enrollment>(`${this.baseUrl}/enrolements/${coursCode}`, {});
+    let userId = '';
+    try {
+      const token = localStorage.getItem('fraudly_access_token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1])) as Record<string, unknown>;
+        userId = (payload['userId'] ?? payload['sub'] ?? '') as string;
+      }
+    } catch {}
+    return this.http.post<Enrollment>(
+      `${this.baseUrl}/enrolements/${coursCode}`,
+      {},
+      { headers: { 'X-User-Id': userId } }
+    );
   }
 
   unenroll(enrolementId: string): Observable<void> {

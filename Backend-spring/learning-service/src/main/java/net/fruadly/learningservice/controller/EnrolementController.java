@@ -1,9 +1,9 @@
 package net.fruadly.learningservice.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.fruadly.learningservice.dto.EnrollmentDto;
-import net.fruadly.learningservice.security.SecurityPrincipalUtils;
 import net.fruadly.learningservice.service.EnrollmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +19,11 @@ import java.util.UUID;
 
 public class EnrolementController {
     private final EnrollmentService enrollmentService;
-    private final SecurityPrincipalUtils securityPrincipalUtils;
 
     @PostMapping("/{coursCode}")
     @PreAuthorize("hasAnyAuthority('ROLE_STUDENT', 'ROLE_TEACHER', 'ROLE_ADMIN')")
-    public ResponseEntity<EnrollmentDto> addUser(@PathVariable String coursCode){
-        UUID userId = securityPrincipalUtils.requireUserId();
+    public ResponseEntity<EnrollmentDto> addUser(@PathVariable String coursCode, HttpServletRequest request){
+        UUID userId = UUID.fromString(request.getHeader("X-User-Id"));
         EnrollmentDto enrollmentDto1 = enrollmentService.addEnrollmentToCourse(coursCode, userId);
         return new ResponseEntity<>(enrollmentDto1, HttpStatus.CREATED);
     }
